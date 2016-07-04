@@ -130,7 +130,11 @@ void fetchfiles(bool recursive, const std::string &dir) {
   while ((dp = readdir(dirp)) != NULL) {
     if( (dp->d_type & DT_REG)==DT_REG) {
       dots();
-      files.push_back( file(dp->d_name, dir) );
+      try {
+        files.push_back( file(dp->d_name, dir) );
+      } catch(...) {
+        // Skip anomalous file
+      }
     }
     if( recursive && (dp->d_type & DT_DIR)==DT_DIR && dp->d_name[0]!='.' ) {
       fetchfiles(recursive, dir + "/" + dp->d_name);
@@ -171,7 +175,11 @@ char clean_magic_char(char ch) {
   }
 }
 
-const std::string clean_magic(const std::string &magic) {
+const std::string clean_magic(magic_t cookie, const char *magic) {
+  if(magic==NULL) {
+    fprintf(stderr, "%s(%d): %s(%d)\n", __FILE__, __LINE__, magic_error(cookie), magic_errno(cookie));
+    throw -1;
+  }
   std::string clean = magic;
   size_t pos = clean.find_first_of(';');
   if(pos != std::string::npos) {
@@ -245,9 +253,11 @@ void boxfiles() {
   }
   std::set<std::string> known_paths;
   for(auto it=files.begin(); it!=files.end(); ++it) {
+    try {
     auto size = get_human_size(it->size);
     auto date = get_date(it->m_time);
-    std::string magic_id = clean_magic(magic_file( magic, it->fullname().c_str() ));
+
+    std::string magic_id = clean_magic(magic, magic_file( magic, it->fullname().c_str() ));
 
     std::string key;
     bool in_param = false;
@@ -339,6 +349,7 @@ void boxfiles() {
     if( verbosity > 0 ) {
       printf( "\ndone.\n" );
     }
+  } catch(...) {}
   }
   magic_close(magic);
 }
