@@ -4,8 +4,6 @@ INCLUDES        = -I$(top_builddir) -I$(top_srcdir) \
 
 AUTOMAKE_OPTIONS = color-tests
 
-ACLOCAL_AMFLAGS = -I m4
-
 SUBDIRS = 
 
 check_PROGRAMS = 

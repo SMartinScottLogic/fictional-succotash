@@ -41,7 +41,8 @@ struct file {
 };
 
   file::file(const std::string &_name, const std::string &_path)
-: key(_name), name(_name), path(_path), size(0) 
+: key(_name), name(_name), path(_path), size(0)
+, a_time(0), m_time(0), c_time(0)
 {
   struct stat sb;
   std::string fullname = path + "/" + name;
@@ -172,7 +173,7 @@ char clean_magic_char(char ch) {
 
 const std::string clean_magic(const std::string &magic) {
   std::string clean = magic;
-  int pos = clean.find_first_of(';');
+  size_t pos = clean.find_first_of(';');
   if(pos != std::string::npos) {
     clean = clean.substr(0, pos);
   }
@@ -297,7 +298,7 @@ void boxfiles() {
     count ++;
 
     char group[1024];
-    snprintf(group, 1024, "/GROUP_%u", count);
+    snprintf(group, 1024, "/GROUP_%ju", (uintmax_t)count);
     key += group;
     if(verbosity > 1) {
       printf( "%s %s %s -> %s\n", it->fullname().c_str(), size.c_str(), magic_id.c_str(), key.c_str() );

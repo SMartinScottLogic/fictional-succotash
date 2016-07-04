@@ -26,7 +26,7 @@ CXXFLAGS="$CXXFLAGS --std=c++0x -rdynamic `getconf LFS_CFLAGS`"
 # set OGS2_LIB_DEBUG flag and introduce additional compiler flags
 if test x"$debuger" = x"yes"; then
 	AC_DEFINE(OGS2_LIB_DEBUG,[],[whether to build with debug information])
-	CXXFLAGS="$CXXFLAGS -g -pg -O0 -Wall -Weffc++ -Wextra -Werror -Wstrict-null-sentinel -Wp,-D_FORTIFY_SOURCE=2 "
+	CXXFLAGS="$CXXFLAGS -nopie -g -pg -O0 -Wall -Weffc++ -Wextra -Werror -Wstrict-null-sentinel -U_FORTIFY_SOURCE -Wp,-D_FORTIFY_SOURCE=2 "
 fi
 
 AM_INIT_AUTOMAKE([subdir-objects])
