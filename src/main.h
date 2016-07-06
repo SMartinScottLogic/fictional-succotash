@@ -45,6 +45,10 @@
 #  include <magic.h>
 # endif
 
+# ifdef HAVE_OPENSSL_SHA_H
+#  include <openssl/sha.h>
+# endif
+
 #endif//HAVE_CONFIG_H
 
 #endif//TIDY_MAIN_H

@@ -40,7 +40,7 @@ LT_INIT
 
 # Checks for header files
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h string.h unistd.h valgrind/valgrind.h regex.h stdarg.h pthread.h dirent.h libgen.h magic.h])
+AC_CHECK_HEADERS([stdlib.h string.h unistd.h valgrind/valgrind.h regex.h stdarg.h pthread.h dirent.h libgen.h magic.h openssl/sha.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -65,7 +65,8 @@ AC_HEADER_TIME
 #PKG_CHECK_MODULES([XML], [libxml-2.0])
 #AC_SUBST([XML_CFLAGS])
 #AC_SUBST([XML_LIBS])
-AC_CHECK_LIB(magic, magic_open)
+AC_CHECK_LIB([magic], [magic_open])
+AC_CHECK_LIB([crypto], [SHA1_Init])
 
 # Checks for library functions
 AC_FUNC_SELECT_ARGTYPES

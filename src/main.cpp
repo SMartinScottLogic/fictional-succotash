@@ -1,3 +1,5 @@
+// TODO Error handling
+
 #include "main.h"
 
 #include <cstdio>
@@ -17,13 +19,28 @@
 
 #include "options.h"
 
+#define BUFSIZE (1024*1024)
+
 bool case_insensitive = true;
 int perform_actions = 1;
 int verbosity = 0;
+size_t sha_split_point = 3;
 
 char clean(char ch) {
   if(isalnum(ch)) return ch;
   return '_';
+}
+
+constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+std::string hexstring(unsigned char *data, int len)
+{
+  std::string s(len * 2, ' ');
+  for (int i = 0; i < len; ++i) {
+    s[2 * i]     = hexmap[(data[i] & 0xF0) >> 4];
+    s[2 * i + 1] = hexmap[data[i] & 0x0F];
+  }
+  return s;
 }
 
 struct file {
@@ -37,6 +54,7 @@ struct file {
 
   file(const std::string &_name, const std::string &_path);
   const std::string fullname() const;
+  const std::string get_sha1() const;
   bool operator<(const file& b) const;
 };
 
@@ -75,6 +93,31 @@ bool file::operator<(const file& b) const {
   }
   return false;
 }
+
+const std::string file::get_sha1() const {
+  // current state of the hash
+  SHA_CTX ctx;
+  SHA1_Init(&ctx);
+
+  unsigned char buf[BUFSIZE];
+  FILE *fp = fopen(this->fullname().c_str(), "rb");
+  if(!fp) return "";
+  while(!feof(fp)) {
+    int n = fread(buf, 1, BUFSIZE, fp);
+    if(n>0) {
+      // Hash data as it comes in
+      SHA1_Update(&ctx, buf, n);
+    }
+  }
+  fclose(fp);
+  // finalize it
+  unsigned char hash[SHA_DIGEST_LENGTH];
+  SHA1_Final(hash, &ctx);
+
+  std::string ret = hexstring(hash, SHA_DIGEST_LENGTH);
+  return ret.substr(0, sha_split_point) + "/" + ret.substr(sha_split_point);
+}
+
 std::vector<file> files;
 
 void dots() {
@@ -254,6 +297,7 @@ void boxfiles() {
   std::set<std::string> known_paths;
   for(auto it=files.begin(); it!=files.end(); ++it) {
     try {
+      auto sha = it->get_sha1();
     auto size = get_human_size(it->size);
     auto date = get_date(it->m_time);
 
@@ -271,6 +315,7 @@ void boxfiles() {
 	    in_param = true;
 	  }
 	  break;
+
 	case 'd':
 	  if(in_param) {
 	    in_param = false;
@@ -295,6 +340,14 @@ void boxfiles() {
 	    key += (*it);
 	  }
 	  break;
+  case '1':
+    if(in_param) {
+      in_param = false;
+      key += sha;
+    } else {
+      key += (*it);
+    }
+    break;
 
 	default:
 	  key += (*it);
@@ -311,7 +364,7 @@ void boxfiles() {
     snprintf(group, 1024, "/GROUP_%ju", (uintmax_t)count);
     key += group;
     if(verbosity > 1) {
-      printf( "%s %s %s -> %s\n", it->fullname().c_str(), size.c_str(), magic_id.c_str(), key.c_str() );
+      printf( "%s %s %s -> %s -- '%s'\n", it->fullname().c_str(), size.c_str(), magic_id.c_str(), key.c_str(), sha.c_str() );
     }
     if(perform_actions==0) continue;
 
@@ -363,6 +416,10 @@ void processOption(const std::string &command, const std::string &arg) {
     sscanf(arg.c_str(), "%zu", &threshold);
     return;
   }
+  if(command == "1" || command == "hash-split") {
+    sscanf(arg.c_str(), "%zu", &sha_split_point);
+    return;
+  }
   if(command == "v") {
     verbosity ++;
     return;
@@ -374,6 +431,7 @@ int main(int argc, char *argv[]) {
   options.set_name("tidy");
   options.add_option("structure", 's', nullptr, 0, processOption, "PATTERN", "Desired organisational structure. (Default: '%s')", box_structure.c_str() );
   options.add_option("threshold", 't', nullptr, 0, processOption, "THRESHOLD", "Maximum files per group in organisation structure. (Default: %zu)", threshold);
+  options.add_option("hash-split", '1', nullptr, 0, processOption, "THRESHOLD", "Position in SHA1 hash to split path (Default: %zu)", sha_split_point);
   options.add_option("dry-run", 'n', &perform_actions, 0, processOption, "", "Do not modify/move files, only show what would be done.");
   options.add_option("", 'v', nullptr, 0, processOption, "", "Increase verbosity.");
   int optind = options.getopt(argc, argv);

@@ -1,10 +1,10 @@
 FROM alpine:3.3
 
-RUN apk add --no-cache bash autoconf automake libtool g++ make file-dev
+RUN apk add --no-cache bash autoconf automake libtool g++ make file-dev openssl-dev
 WORKDIR /tmp
 COPY m4 m4/
 COPY Makefile.am configure.ac NEWS README AUTHORS ChangeLog ./
 COPY src src/
-RUN autoreconf -i && ./configure && make && make install clean && rm -rf *
+RUN autoreconf -i && ./configure && make && make install clean && cat config.h && rm -rf *
 WORKDIR /
 ENTRYPOINT ["/usr/local/bin/tidy", "--dry-run"]
