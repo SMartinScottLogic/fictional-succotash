@@ -21,7 +21,8 @@
 
 #define BUFSIZE (1024*1024)
 
-bool case_insensitive = true;
+int case_insensitive = 1;
+int use_group_dirs = 1;
 int perform_actions = 1;
 int verbosity = 0;
 size_t sha_split_point = 3;
@@ -73,7 +74,7 @@ struct file {
   m_time = sb.st_mtime;
   c_time = sb.st_ctime;
 
-  if(case_insensitive) {
+  if(case_insensitive != 0) {
     std::transform(key.begin(), key.end(), key.begin(), tolower);
   }
   std::transform(key.begin(), key.end(), key.begin(), clean);
@@ -355,15 +356,19 @@ void boxfiles() {
       }
     }
 
-    off_t count = count_keys[key];
-    count_keys[key]++;
-    count /= threshold;
-    count ++;
+    if( use_group_dirs != 0 ) {
+      off_t count = count_keys[key];
+      count_keys[key]++;
+      count /= threshold;
+      count ++;
 
-    char group[1024];
-    snprintf(group, 1024, "/GROUP_%ju", (uintmax_t)count);
-    key += group;
+      char group[1024];
+      snprintf(group, 1024, "/GROUP_%ju", (uintmax_t)count);
+      key += group;
+    }
+
     if(verbosity > 1) {
+      printf( "%d %d %d\n", use_group_dirs, case_insensitive, perform_actions);
       printf( "%s %s %s -> %s -- '%s'\n", it->fullname().c_str(), size.c_str(), magic_id.c_str(), key.c_str(), sha.c_str() );
     }
     if(perform_actions==0) continue;
@@ -426,14 +431,25 @@ void processOption(const std::string &command, const std::string &arg) {
   }
 }
 
+void dump_args(int argc, char *argv[]) {
+  for(int i=0; i<argc; i++) {
+    printf( "%d\t%s\n", i, argv[i]);
+  }
+  printf("done.");
+}
+
 int main(int argc, char *argv[]) {
+  dump_args(argc, argv);
   ogs::Options options;
   options.set_name("tidy");
   options.add_option("structure", 's', nullptr, 0, processOption, "PATTERN", "Desired organisational structure. (Default: '%s')", box_structure.c_str() );
   options.add_option("threshold", 't', nullptr, 0, processOption, "THRESHOLD", "Maximum files per group in organisation structure. (Default: %zu)", threshold);
   options.add_option("hash-split", '1', nullptr, 0, processOption, "THRESHOLD", "Position in SHA1 hash to split path (Default: %zu)", sha_split_point);
-  options.add_option("dry-run", 'n', &perform_actions, 0, processOption, "", "Do not modify/move files, only show what would be done.");
   options.add_option("", 'v', nullptr, 0, processOption, "", "Increase verbosity.");
+
+  options.add_option("dry-run", '\0', &perform_actions, 0, processOption, "", "Do not modify/move files, only show what would be done.");
+  options.add_option("disable-group-dir", '\0', &use_group_dirs, 0, processOption, "", "Do not append an organisational numbered group");
+  options.add_option("case-sensitive", '\0', &case_insensitive, 0, processOption, "", "Sort filenames case-sensitively (default %s i.e. %s)", case_insensitive ? "FALSE" : "TRUE", case_insensitive ? "insensitive" : "sensitive" );
   int optind = options.getopt(argc, argv);
   while(optind < argc) {
     fetchfiles(true, argv[optind]);
