@@ -123,7 +123,11 @@ std::vector<file> files;
 
 void dots() {
   if( (files.size() % 10000)==0) {
+    #ifdef HAVE_PRINTF_THSEP
+    fprintf(stderr, "\n%'zu ", files.size() );
+    #else
     fprintf(stderr, "\n%zu ", files.size() );
+    #endif
   }
   if( (files.size() % 100) == 0) {
     fprintf(stderr, ".");
@@ -368,7 +372,6 @@ void boxfiles() {
     }
 
     if(verbosity > 1) {
-      printf( "%d %d %d\n", use_group_dirs, case_insensitive, perform_actions);
       printf( "%s %s %s -> %s -- '%s'\n", it->fullname().c_str(), size.c_str(), magic_id.c_str(), key.c_str(), sha.c_str() );
     }
     if(perform_actions==0) continue;
@@ -439,6 +442,12 @@ void dump_args(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
+#ifdef HAVE_LOCALE_H
+  setlocale(LC_ALL, "");
+#endif
+
+  printf( "%'d\n", 1234);
+
   dump_args(argc, argv);
   ogs::Options options;
   options.set_name("tidy");

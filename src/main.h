@@ -49,6 +49,10 @@
 #  include <openssl/sha.h>
 # endif
 
+# ifdef HAVE_LOCALE_H
+#  include <locale.h>
+# endif
+
 #endif//HAVE_CONFIG_H
 
 #endif//TIDY_MAIN_H
