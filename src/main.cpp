@@ -435,6 +435,10 @@ void processOption(const std::string &command, const std::string &arg) {
     verbosity ++;
     return;
   }
+  if(command == "limit") {
+    sscanf(arg.c_str(), "%zu", &limit_files);
+    return;
+  }
 }
 
 int main(int argc, char *argv[]) {
