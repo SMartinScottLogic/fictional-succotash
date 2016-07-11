@@ -298,6 +298,7 @@ std::string get_date(time_t date) {
 }
 
 void boxfiles() {
+  size_t cur_file = 0;
   auto magic = magic_open(MAGIC_MIME_TYPE);
   if(magic_load(magic, NULL)==-1) {
     fprintf(stderr, "======== MAGIC ERROR = %s\n", magic_error(magic) );
@@ -405,6 +406,12 @@ void boxfiles() {
     }
     if( verbosity > 0 ) {
       printf( "\nMoving file..." );
+    } else {
+      #ifdef HAVE_PRINTF_THSEP
+      printf( "%'zu  ", cur_file);
+      #else
+      printf(  "%zu  ", cur_file);
+      #endif
     }
     if( verbosity > 1 ) {
       printf( "('%s' -> '%s/%s')", it->fullname().c_str(), cur_path.c_str(), it->name.c_str() );
@@ -414,6 +421,7 @@ void boxfiles() {
       printf( "\ndone.\n" );
     }
   } catch(...) {}
+  cur_file ++;
   }
   magic_close(magic);
 }
