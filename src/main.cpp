@@ -85,8 +85,8 @@ const std::string file::fullname() const {
 }
 
 bool file::operator<(const file& b) const {
-  if(size < b.size) return true;
-  if(size > b.size) return false;
+  if(size > b.size) return true;
+  if(size < b.size) return false;
 
   if(key < b.key) return true;
   if(key == b.key) {
