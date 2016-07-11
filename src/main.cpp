@@ -283,7 +283,7 @@ void rename(const file &file, const std::string &dest) {
   printf( "%s -> %s\n", source.c_str(), target.c_str() );
   if( rename(source.c_str(), target.c_str() )==-1) {
     fprintf(stderr, "rename('%s', '%s'): %d: %s.\n", source.c_str(), target.c_str(), errno, strerror(errno));
-    exit(-1);
+    //exit(-1);
   }
 }
 
