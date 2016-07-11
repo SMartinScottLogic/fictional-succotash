@@ -177,7 +177,7 @@ void fetchfiles(bool recursive, const std::string &dir) {
   DIR *dirp = opendir( dir.c_str() );
   struct dirent *dp = NULL;
   while ((dp = readdir(dirp)) != NULL) {
-    if(limit_files != 0 && files.size() > limit_files) continue;
+    if(limit_files != 0 && files.size() > limit_files) break;
 
     if( (dp->d_type & DT_REG)==DT_REG) {
       dots();
