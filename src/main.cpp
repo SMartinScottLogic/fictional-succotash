@@ -434,21 +434,11 @@ void processOption(const std::string &command, const std::string &arg) {
   }
 }
 
-void dump_args(int argc, char *argv[]) {
-  for(int i=0; i<argc; i++) {
-    printf( "%d\t%s\n", i, argv[i]);
-  }
-  printf("done.");
-}
-
 int main(int argc, char *argv[]) {
 #ifdef HAVE_LOCALE_H
   setlocale(LC_ALL, "");
 #endif
 
-  printf( "%'d\n", 1234);
-
-  dump_args(argc, argv);
   ogs::Options options;
   options.set_name("tidy");
   options.add_option("structure", 's', nullptr, 0, processOption, "PATTERN", "Desired organisational structure. (Default: '%s')", box_structure.c_str() );
