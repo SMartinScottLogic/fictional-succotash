@@ -120,6 +120,7 @@ const std::string file::get_sha1() const {
 }
 
 std::vector<file> files;
+std::vector<file>::size_type limit_files = 0;
 
 void dots() {
   if( (files.size() % 10000)==0) {
@@ -176,6 +177,8 @@ void fetchfiles(bool recursive, const std::string &dir) {
   DIR *dirp = opendir( dir.c_str() );
   struct dirent *dp = NULL;
   while ((dp = readdir(dirp)) != NULL) {
+    if(limit_files != 0 && files.size() > limit_files) continue;
+
     if( (dp->d_type & DT_REG)==DT_REG) {
       dots();
       try {
@@ -449,6 +452,7 @@ int main(int argc, char *argv[]) {
   options.add_option("dry-run", '\0', &perform_actions, 0, processOption, "", "Do not modify/move files, only show what would be done.");
   options.add_option("disable-group-dir", '\0', &use_group_dirs, 0, processOption, "", "Do not append an organisational numbered group");
   options.add_option("case-sensitive", '\0', &case_insensitive, 0, processOption, "", "Sort filenames case-sensitively (default %s i.e. %s)", case_insensitive ? "FALSE" : "TRUE", case_insensitive ? "insensitive" : "sensitive" );
+  options.add_option("limit", '\0', nullptr, 0, processOption, "LIMIT", "Limit number of files to process (default: %'zu)", limit_files);
   int optind = options.getopt(argc, argv);
   while(optind < argc) {
     fetchfiles(true, argv[optind]);
