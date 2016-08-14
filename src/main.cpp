@@ -175,6 +175,11 @@ void tokenize(const std::string& str, std::vector<std::string>& tokens, const st
 
 void fetchfiles(bool recursive, const std::string &dir) {
   DIR *dirp = opendir( dir.c_str() );
+  if(dirp == nullptr) {
+    perror((std::string("opendir:") + dir).c_str());
+    return;
+  }
+
   struct dirent *dp = NULL;
   while ((dp = readdir(dirp)) != NULL) {
     if(limit_files != 0 && files.size() > limit_files) break;
