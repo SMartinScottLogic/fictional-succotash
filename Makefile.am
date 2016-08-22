@@ -13,6 +13,13 @@ bin_PROGRAMS+=tidy
 tidy_SOURCES = src/main.cpp
 tidy_SOURCES+= src/options.cpp src/options.h
 
+bin_PROGRAMS += fdupes
+fdupes_SOURCES = src/fdupes.cpp
+fdupes_SOURCES+= src/crc_32.h src/crc_32.cpp
+
+strip: $(bin_PROGRAMS)
+	$(STRIP) $^
+
 TESTS = $(check_PROGRAMS)
 
 package: distdir
