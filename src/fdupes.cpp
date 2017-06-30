@@ -175,7 +175,6 @@ void scandir(const std::string &dir, bool read_only)
   struct stat linfo;
   static int progress = 0;
   static char indicator[] = "-\\|/";
-  char *fullname, *name;
 
   cd = opendir(dir.c_str());
 

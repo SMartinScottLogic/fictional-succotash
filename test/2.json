@@ -1,0 +1,8 @@
+{
+  "paths":[
+    "/home/simon/Development/fictional-succotash/metafs_src",
+    "/home/simon/Development/fictional-succotash/src"
+  ],
+  "meta_pattern":"{magic}/{human_size}",
+  "filename_pattern":"{filename}_{id}.{magic_ext}"
+}

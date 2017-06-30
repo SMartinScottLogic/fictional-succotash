@@ -1,0 +1,18 @@
+{
+  "paths":[
+    "/media/simon/maxtor/twitter/t/201712/",
+    "/media/simon/maxtor/twitter/t/201711/",
+    "/media/simon/maxtor/twitter/t/201710/",
+    "/media/simon/maxtor/twitter/t/201709/",
+    "/media/simon/maxtor/twitter/t/201708/",
+    "/media/simon/maxtor/twitter/t/201707/",
+    "/media/simon/maxtor/twitter/t/201706/",
+    "/media/simon/maxtor/twitter/t/201705/",
+    "/media/simon/maxtor/twitter/t/201704/",
+    "/media/simon/maxtor/twitter/t/201703/",
+    "/media/simon/maxtor/twitter/t/201702/",
+    "/media/simon/maxtor/twitter/t/201701/"
+  ],
+  "meta_pattern":"{magic}/{human_size}",
+  "filename_pattern":"{filename}_{id}.{magic_ext}"
+}

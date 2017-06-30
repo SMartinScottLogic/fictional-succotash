@@ -1,0 +1,3 @@
+1. What happens when a new file is copied into 'staging'?
+
+2. What happens if new file is moved out of 'staging' immediately after writing is complete (w/associated close)?

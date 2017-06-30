@@ -479,5 +479,8 @@ int main(int argc, char *argv[]) {
   printf( "Sorting..." );
   std::sort(files.begin(), files.end());
   printf( "done.\n");
+fprintf(stderr, "==========================================================\n");
+fprintf(stderr, "=== TODO: CONVERT NON-DOT OUTPUT TO USE BOOST LOGGING. ===\n");
+fprintf(stderr, "==========================================================\n");
   boxfiles();
 }

@@ -1,0 +1,8 @@
+{
+  "paths":[
+    "/media/simon/maxtor/twitter/t/20170301",
+    "/media/simon/maxtor/twitter/t/20170302"
+  ],
+  "meta_pattern":"{magic}/{human_size}",
+  "filename_pattern":"{filename}_{id}.{magic_ext}"
+}
