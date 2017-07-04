@@ -65,48 +65,14 @@ void PassthruFS::setRootDir(const char *path) {
 int PassthruFS::Getattr(const char *path, struct stat *statbuf) {
   LOG(0,"%s: '%s'\n", __PRETTY_FUNCTION__, path );
   auto *context = fuse_get_context();
-  auto r = lstat(m_root.c_str(), statbuf);
+  std::string root_path = (m_root + "/" + path);
+  auto r = lstat(root_path.c_str(), statbuf);
   if(r!=0) {
     r = -errno;
-    LOG(0,"lstat('%s', statbuf) => %d\n", m_root.c_str(), errno);
+    LOG(0,"lstat('%s', statbuf) => %d\n", root_path.c_str(), errno);
     return r;
-  } else {
-    if( strcmp(path, "/")==0 || strcmp(path, "/test")==0 ) {
-      //statbuf->st_dev = 0;     /* ID of device containing file */
-      statbuf->st_ino = 0;     /* inode number */
-      statbuf->st_mode = 0755 | __S_IFDIR;    /* protection */
-      statbuf->st_nlink = 1;   /* number of hard links */
-      statbuf->st_uid=context->uid;     /* user ID of owner */
-      statbuf->st_gid=context->gid;     /* group ID of owner */
-      //statbuf->st_rdev=0;    /* device ID (if special file) */
-      statbuf->st_size=0;    /* total size, in bytes */
-      //statbuf->st_blksize=4096; /* blocksize for file system I/O */
-      //statbuf->st_blocks=1;  /* number of 512B blocks allocated */
-      //statbuf->st_atime=0;   /* time of last access */
-      //statbuf->st_mtime=0;   /* time of last modification */
-      //statbuf->st_ctime=0;   /* time of last status change */
-      dump_stat(path, statbuf);
-      return 0;
-    }
-    if(strcmp(path, "/delete me.txt")==0 || strcmp(path, "/rename me.txt")==0 || strcmp(path, "/test/move me.txt")==0) {
-      //statbuf->st_dev = 0;     /* ID of device containing file */
-      statbuf->st_ino = 0;     /* inode number */
-      statbuf->st_mode = 0644 | __S_IFREG;    /* protection */
-      statbuf->st_nlink = 1;   /* number of hard links */
-      statbuf->st_uid=context->uid;     /* user ID of owner */
-      statbuf->st_gid=context->gid;     /* group ID of owner */
-      //statbuf->st_rdev=0;    /* device ID (if special file) */
-      statbuf->st_size=0;    /* total size, in bytes */
-      //statbuf->st_blksize=4096; /* blocksize for file system I/O */
-      //statbuf->st_blocks=1;  /* number of 512B blocks allocated */
-      //statbuf->st_atime=0;   /* time of last access */
-      //statbuf->st_mtime=0;   /* time of last modification */
-      //statbuf->st_ctime=0;   /* time of last status change */
-      dump_stat(path, statbuf);
-      return 0;
-    }
   }
-  return -ENOENT;
+  return 0;
 }
 
 int PassthruFS::Readlink(const char *path, char *link, size_t size) {
@@ -256,22 +222,15 @@ int PassthruFS::Opendir(const char *path, struct fuse_file_info * /*fileInfo*/) 
 int PassthruFS::Readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info * /*fileInfo*/) {
   LOG(0,"%s: '%s' %zu\n", __PRETTY_FUNCTION__, path, offset );
 
-  if(offset == 0 && strcmp(path, "/")==0) {
-    if(filler(buf, "rename me.txt", NULL, 0) != 0) {
-      return -ENOMEM;
+  DIR *dp = opendir((m_root + "/" + path).c_str());
+  if(dp) {
+    struct dirent *de;
+    while ((de = readdir(dp)) != NULL) {
+      if (filler(buf, de->d_name, NULL, 0)) break;
     }
-    if(filler(buf, "delete me.txt", NULL, 0) != 0) {
-      return -ENOMEM;
-    }
-    return 0;
+    closedir(dp);
   }
-  if(offset == 0 && strcmp(path, "/test")==0) {
-    if(filler(buf, "move me.txt", NULL, 0) != 0) {
-      return -ENOMEM;
-    }
-    return 0;
-  }
-  return -ENOENT;
+  return 0;
 }
 
 int PassthruFS::Releasedir(const char *path, struct fuse_file_info * /*fileInfo*/) {
