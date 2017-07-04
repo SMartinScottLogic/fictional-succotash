@@ -106,7 +106,14 @@ int PassthruFS::Mkdir(const char *path, mode_t mode) {
 int PassthruFS::Unlink(const char *path) {
   LOG(0,"%s: '%s'\n", __PRETTY_FUNCTION__, path );
   LOG(0,"unlink(path=%s)", path);
-  return -ENOENT;
+  std::string root_path = (m_root + "/" + path);
+  int r = unlink(root_path.c_str());
+  if (r == -1) {
+    r = -errno;
+    LOG(0,"unlink('%s') => %d\n", root_path.c_str(), errno);
+    return r;
+  }
+  return 0;
 }
 
 int PassthruFS::Rmdir(const char *path) {
