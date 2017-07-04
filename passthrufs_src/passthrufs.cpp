@@ -64,7 +64,7 @@ void PassthruFS::setRootDir(const char *path) {
 
 int PassthruFS::Getattr(const char *path, struct stat *statbuf) {
   LOG(0,"%s: '%s'\n", __PRETTY_FUNCTION__, path );
-  auto *context = fuse_get_context();
+  //auto *context = fuse_get_context();
   std::string root_path = (m_root + "/" + path);
   auto r = lstat(root_path.c_str(), statbuf);
   if(r!=0) {
@@ -83,10 +83,17 @@ int PassthruFS::Readlink(const char *path, char *link, size_t size) {
 
 /** \brief Handles creating FIFOs, regular files, etc...
 */
-int PassthruFS::Mknod(const char *path, mode_t mode, dev_t /*dev*/) {
+int PassthruFS::Mknod(const char *path, mode_t mode, dev_t dev) {
   LOG(0,"%s: '%s'\n", __PRETTY_FUNCTION__, path );
   LOG(0,"mknod(path=%s, mode=%o)\n", path, mode);
-  return -EPERM;
+  std::string root_path = (m_root + "/" + path);
+  int r = mknod(root_path.c_str(), mode, dev);
+  if (r != 0) {
+    r = -errno;
+    LOG(0,"mknod('%s') => %d\n", root_path.c_str(), errno);
+    return r;
+  }
+  return 0;
 }
 
 /** \todo Decide what to do on \em original filesystem */
@@ -140,7 +147,14 @@ int PassthruFS::Chown(const char *path, uid_t uid, gid_t gid) {
 int PassthruFS::Truncate(const char *path, off_t newSize) {
   LOG(0,"%s: '%s'\n", __PRETTY_FUNCTION__, path );
   LOG(0,"truncate(path=%s, newSize=%d\n", path, (int)newSize);
-  return -ENOENT;
+  std::string root_path = (m_root + "/" + path);
+  int r = truncate(root_path.c_str(), newSize);
+  if (r == -1) {
+    int r = -errno;
+    LOG(0,"truncate('%s') => %d\n", root_path.c_str(), errno);
+    return r;
+  }
+  return 0;
 }
 
 int PassthruFS::Utime(const char *path, struct utimbuf * /*ubuf*/) {
@@ -148,19 +162,42 @@ int PassthruFS::Utime(const char *path, struct utimbuf * /*ubuf*/) {
   return -ENOENT;
 }
 
-int PassthruFS::Open(const char *path, struct fuse_file_info * /*fileInfo*/) {
+int PassthruFS::Open(const char *path, struct fuse_file_info *fileInfo) {
   LOG(0,"%s: '%s'\n", __PRETTY_FUNCTION__, path );
-  return -ENOENT;
+  std::string root_path = (m_root + "/" + path);
+  int fd = open(root_path.c_str(), fileInfo->flags);
+  if (fd == -1) {
+    int r = -errno;
+    LOG(0,"open('%s') => %d\n", root_path.c_str(), errno);
+    return r;
+  }
+  fileInfo->direct_io = 1;
+  fileInfo->fh = (unsigned long) fd;
+    
+  LOG(0,"open('%s') == %d\n", root_path.c_str(), fd);
+  return 0;
 }
 
-int PassthruFS::Read(const char *path, char * /*buf*/, size_t /*size*/, off_t /*offset*/, struct fuse_file_info * /*fileInfo*/) {
+int PassthruFS::Read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fileInfo) {
   LOG(0,"%s: '%s'\n", __PRETTY_FUNCTION__, path );
-  return -ENOENT;
+  int r = pread(fileInfo->fh, buf, size, offset);
+  if(r == -1) {
+    int r = -errno;
+    LOG(0,"read('%d') => %d\n", fileInfo->fh, errno);
+    return r;
+  }
+  return r;
 }
 
-int PassthruFS::Write(const char *path, const char * /*buf*/, size_t /*size*/, off_t /*offset*/, struct fuse_file_info * /*fileInfo*/) {
+int PassthruFS::Write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fileInfo) {
   LOG(0,"%s: '%s'\n", __PRETTY_FUNCTION__, path );
-  return -ENOENT;
+  int r = pwrite(fileInfo->fh, buf, size, offset);
+  if(r == -1) {
+    int r = -errno;
+    LOG(0,"write('%d') => %d\n", fileInfo->fh, errno);
+    return r;
+  }
+  return r;
 }
 
 int PassthruFS::Statfs(const char *path, struct statvfs *statInfo) {
@@ -177,9 +214,16 @@ int PassthruFS::Flush(const char *path, struct fuse_file_info * /*fileInfo*/) {
   return 0;
 }
 
-int PassthruFS::Release(const char *path, struct fuse_file_info * /*fileInfo*/) {
+int PassthruFS::Release(const char *path, struct fuse_file_info *fileInfo) {
   LOG(0,"%s: '%s'\n", __PRETTY_FUNCTION__, path );
-  return -ENOENT;
+  LOG(0,"close(fh=%d)\n", fileInfo->fh);
+  int r = close(fileInfo->fh);
+  if (r == -1) {
+    int r = -errno;
+    LOG(0,"release('%d') => %d\n", fileInfo->fh, errno);
+    return r;
+  }
+  return 0;
 }
 
 int PassthruFS::Fsync(const char *path, int /*datasync*/, struct fuse_file_info * /*fi*/) {
@@ -251,7 +295,7 @@ void *PassthruFS::Init(struct fuse_conn_info * /*conn*/) {
 
 int PassthruFS::Truncate(const char *path, off_t offset, struct fuse_file_info * /*fileInfo*/) {
   LOG(0,"%s: '%s'\n", __PRETTY_FUNCTION__, path );
-  LOG(0,"truncate(path=%s, offset=%d)\n", path, (int)offset);
+  LOG(0,"truncate(path=%s, offset=%zu)", path, offset);
   return -ENOENT;
 }
 
