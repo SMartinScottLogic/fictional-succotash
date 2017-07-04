@@ -1,5 +1,5 @@
-#ifndef TAGFS_H
-#define TAGFS_H
+#ifndef PASSTHRUFS_H
+#define PASSTHRUFS_H
 
 #include <cctype>
 #include <dirent.h>
@@ -23,12 +23,12 @@ enum TagError {
   TAGS,
 };
 
-class LogFS {
+class PassthruFS {
   public:
-    static LogFS *Instance();
+    static PassthruFS *Instance();
 
-    LogFS();
-    ~LogFS();
+    PassthruFS();
+    ~PassthruFS();
 
     void setRootDir(const char *path);
 
@@ -69,8 +69,8 @@ class LogFS {
 
     std::string m_root;
 
-    static LogFS *_instance;
+    static PassthruFS *_instance;
 };
 
-#endif//TAGFS_H
+#endif//PASSTHRUFS_H
 

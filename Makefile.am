@@ -33,9 +33,10 @@ passthrufs_SOURCES = passthrufs_src/main.c
 passthrufs_SOURCES += passthrufs_src/wrap.cc passthrufs_src/wrap.hh
 passthrufs_SOURCES += passthrufs_src/passthrufs.cpp passthrufs_src/passthrufs.h
 passthrufs_SOURCES += passthrufs_src/log.cpp passthrufs_src/log.h
-passthrufs_CXXFLAGS = $(FUSE_CFLAGS) $(SQLITE_CFLAGS) -g
-passthrufs_CFLAGS = $(FUSE_CFLAGS) $(SQLITE_CFLAGS) -g
-passthrufs_LDADD = $(FUSE_LIBS) $(SQLITE_LIBS)
+passthrufs_CXXFLAGS = -DBOOST_LOG_DYN_LINK $(PTHREAD_CFLAGS) $(FUSE_CFLAGS) $(SQLITE_CFLAGS) $(BOOST_CPPFLAGS) -g
+passthrufs_CFLAGS = -DBOOST_LOG_DYN_LINK $(PTHREAD_CFLAGS) $(FUSE_CFLAGS) $(SQLITE_CFLAGS) -g
+passthrufs_LDFLAGS = -DBOOST_LOG_DYN_LINK $(BOOST_LDFLAGS)
+passthrufs_LDADD = $(PTHREAD_LIBS) $(FUSE_LIBS) $(SQLITE_LIBS) $(BOOST_SYSTEM_LIB) $(BOOST_THREAD_LIB) $(BOOST_LOG_LIB)
 
 bin_PROGRAMS += metafs
 metafs_SOURCES = metafs_src/main.c
